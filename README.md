@@ -37,3 +37,14 @@
 
 ### APP UI Design
 >   *최종 앱 디자인
+![1](https://user-images.githubusercontent.com/53697280/90895552-50cc0380-e3fd-11ea-989b-8aee43c4817c.png)
+![2](https://user-images.githubusercontent.com/53697280/90895587-5cb7c580-e3fd-11ea-9d2e-2b171b1112ce.png)
+![3](https://user-images.githubusercontent.com/53697280/90895594-5e818900-e3fd-11ea-94df-7dcbdf057dc6.png)
+
+
+##### 시연영상 
+AutoMart.v1 : <https://www.youtube.com/watch?v=3L4pc-mZgfs>        
+AutoMart.v2 : <https://www.youtube.com/watch?v=0TrptnJG7-4>
+
+
+######  *본 작품은 특허등록을 위한 특허 심사 중에 있습니다.
