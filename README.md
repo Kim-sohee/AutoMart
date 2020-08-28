@@ -48,3 +48,4 @@ AutoMart.v2 : <https://www.youtube.com/watch?v=0TrptnJG7-4>
 
 
 ######  *본 작품은 특허등록을 위한 특허 심사 중에 있습니다.
+######  이곳에서 apk를 다운받을 수 있습니다.(암호: 1234)  <http://naver.me/50tMDMXB>
