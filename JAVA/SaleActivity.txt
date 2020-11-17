@@ -1,0 +1,80 @@
+package org.techtown.martapp2;
+
+import android.app.DownloadManager;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Matrix;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
+import android.view.ScaleGestureDetector;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.squareup.picasso.Picasso;
+
+import uk.co.senab.photoview.PhotoView;
+import uk.co.senab.photoview.PhotoViewAttacher;
+
+public class SaleActivity extends AppCompatActivity {
+
+    FirebaseStorage firebaseStorage;
+    StorageReference storageReference;
+    StorageReference ref;
+
+    PhotoView imageView;
+
+    private ScaleGestureDetector scaleGestureDetector;
+    private Matrix matrix=new Matrix();
+
+
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_saleimage);
+        getSupportActionBar().setTitle("오늘의 할인정보");
+
+        imageView=(PhotoView)findViewById(R.id.sale_imageView);
+
+
+        //스토리지에서 이미지 불러오기
+        storageReference=firebaseStorage.getInstance().getReference();
+        ref=storageReference.child("image/마트 전단지이.jpg");
+        ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                String url=uri.toString();
+
+                PhotoViewAttacher photoView=new PhotoViewAttacher(imageView);
+                photoView.update();
+
+                // downloadFile(getApplicationContext(),"Hi_Android",".jpg", DOWNLOAD_SERVICE,url);  //이미지 파일 다운로드
+                Picasso.with(getApplication()).load(url).into(imageView);   //피카소 이용하여 이미지 뷰에 이미지 띄우기
+            }
+        });
+
+    }
+
+    public void downloadFile(Context context,String fileName,String fileExtension,String desinationDirectory,String url){   //할인 이미지 다운로드
+        DownloadManager downloadManager=(DownloadManager)context.getSystemService(Context.DOWNLOAD_SERVICE);
+        Uri uri=Uri.parse(url);
+        DownloadManager.Request request=new DownloadManager.Request(uri);
+
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setDestinationInExternalFilesDir(context,desinationDirectory,fileName+fileExtension);
+
+        downloadManager.enqueue(request);
+    }
+
+    @Override
+    public void onBackPressed() {
+        //Toast.makeText(this, "Back button pressed!", Toast.LENGTH_SHORT).show();
+        super.onBackPressed();
+        Intent intent=new Intent(getApplication(),MainActivity.class);
+        startActivity(intent);
+    }
+}

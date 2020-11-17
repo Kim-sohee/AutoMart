@@ -1,0 +1,29 @@
+package org.techtown.martapp2;
+
+public class productData {
+    private String productName;
+    private String productmessage;
+
+    public productData(){ }
+
+    public productData(String productName, String productmessage) {
+        this.productName = productName;
+        this.productmessage = productmessage;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductmessage() {
+        return productmessage;
+    }
+
+    public void setProductmessage(String productmessage) {
+        this.productmessage = productmessage;
+    }
+}

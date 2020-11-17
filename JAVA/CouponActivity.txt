@@ -1,0 +1,93 @@
+package org.techtown.martapp2;
+
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetBehavior;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+
+public class CouponActivity extends AppCompatActivity {
+
+    private ImageButton coupon_guide;
+    private ListView list;
+    ArrayAdapter<String> adapter;
+
+    private FirebaseDatabase firebaseDatabase=FirebaseDatabase.getInstance();
+    private DatabaseReference databaseReference=firebaseDatabase.getReference();
+
+    private BottomSheetBehavior mBottomSheetBehavior;
+    private Button buttonCollapse;
+
+
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_coupon);
+        getSupportActionBar().setTitle("나의 쿠폰함");
+
+        coupon_guide=(ImageButton)findViewById(R.id.coupon_guide);
+        buttonCollapse=(Button)findViewById(R.id.buttonCollapse);
+
+        View bottomSheet=findViewById(R.id.bottom_sheet);
+        mBottomSheetBehavior=BottomSheetBehavior.from(bottomSheet);
+
+        list=(ListView)findViewById(R.id.coupon_list);
+
+        //리스트 뷰에 아이템이 없을 경우 사용자에게 표시
+        TextView emptyText=(TextView)findViewById(android.R.id.empty);
+        list.setEmptyView(emptyText);
+
+        adapter=new ArrayAdapter<String>(this,android.R.layout.simple_dropdown_item_1line,new ArrayList<String>());
+        list.setAdapter(adapter);
+
+        //가이드 버튼을 눌렀을 때
+        coupon_guide.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        });
+
+        buttonCollapse.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+
+        //리스트 뷰에 할인 권 나타내기
+        databaseReference.child("sale").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                adapter.clear();
+                for(DataSnapshot message:dataSnapshot.getChildren()){
+                    String data=message.getValue().toString();
+                    adapter.add(data+" 원 할인권");
+                }
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+}

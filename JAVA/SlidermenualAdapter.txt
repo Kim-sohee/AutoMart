@@ -1,0 +1,84 @@
+package org.techtown.martapp2;
+
+import android.content.Context;
+import android.graphics.Color;
+import android.support.annotation.NonNull;
+import android.support.v4.view.PagerAdapter;
+import android.text.util.Linkify;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class SlidermenualAdapter extends PagerAdapter {
+
+    Context context;
+    LayoutInflater inflater;
+
+    public  int[] imagesArray={R.drawable.menual1,R.drawable.menual2,R.drawable.menual3,R.drawable.menual4,R.drawable.menual5,R.drawable.menual6};
+    public String[] titleArray={"MART APP!","지도","장바구니","할인정보","내 쿠폰함","AR 행사"};
+    public String[] descriptionArray={"APP을 통해 마트 소식과 다양하고 편리한 기능을 사용해보세요!"
+            ,"음성인식등을 통해 상품의 위치를 찾을 수 있습니다. 우측 상단 환경설정에서 다양한 기능을 사용해보세요!"
+            ,"구매 할 물건들을 확인하고 취소할 수 있습니다. 하단의 카드 버튼을 눌러 바로 결제하세요."
+            ,"마트의 할인 전단지를 상시 확인 할 수 있습니다."
+            ,"AR 행사를 통해 얻은 쿠폰 리스트를 확인할 수 있습니다. 결제 시 쿠폰을 사용하여 할인 혜택을 받으세요."
+            ,"AR을 통한 스마트 할인광고를 지원합니다. 간단한 게임 후에 나타나는 바코드 쿠폰을 인식하면 할인 쿠폰을 받으실 수 있습니다. 사용가능한 기기를 확인해보세요."};
+    public int[] backgroundColorArray={Color.rgb(68,68,68),
+                            Color.rgb(204,102,102),Color.rgb(51,153,153)
+                            ,Color.rgb(102,153,204),Color.rgb(124,120,205),Color.rgb(10,200,130)};
+
+    public SlidermenualAdapter(Context context){
+        this.context=context;
+    }
+
+    @Override
+    public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+        return (view==o);
+    }
+
+    @Override
+    public int getCount() {
+        return titleArray.length;
+    }
+
+    @Override
+    public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
+        container.removeView((LinearLayout)object);
+    }
+
+    @NonNull
+    @Override
+    public Object instantiateItem(@NonNull ViewGroup container, int position) {
+        inflater=(LayoutInflater)context.getSystemService(context.LAYOUT_INFLATER_SERVICE);
+        View view=inflater.inflate(R.layout.slide_menual,container,false);
+
+        LinearLayout linearLayout=(LinearLayout)view.findViewById(R.id.linear1);
+        ImageView imageView=(ImageView)view.findViewById(R.id.sildeimage);
+        TextView text_title=(TextView)view.findViewById(R.id.title);
+        TextView text_description=(TextView)view.findViewById(R.id.description);
+
+        linearLayout.setBackgroundColor(backgroundColorArray[position]);
+        imageView.setImageResource(imagesArray[position]);
+        text_title.setText(titleArray[position]);
+        text_description.setText(descriptionArray[position]);
+        container.addView(view);
+
+
+        Linkify.TransformFilter transformFilter=new Linkify.TransformFilter() {
+            @Override
+            public String transformUrl(Matcher match, String url) {
+                return "";
+            }
+        };
+
+        Pattern pattern=Pattern.compile("사용가능한 기기");
+        //Linkify.addLinks(text_description,pattern,"https://developers.google.com/ar/discover/supported-devices",null,transformFilter);
+        Linkify.addLinks(text_description,pattern,"https://library.vuforia.com",null,transformFilter);
+        return view;
+    }
+}

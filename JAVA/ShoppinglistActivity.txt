@@ -1,0 +1,188 @@
+package org.techtown.martapp2;
+
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Vibrator;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.sdsmdg.tastytoast.TastyToast;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+public class ShoppinglistActivity extends AppCompatActivity {
+
+    ListView listView;
+    ArrayList<String> list=new ArrayList<String>();
+    Button addButton;
+    Button deleteButton;
+    Button navigationButton;
+    ArrayAdapter<String> adapter;
+
+    AutoCompleteTextView editText;
+
+    private List<String> adWord;
+
+    String st;
+
+    Vibrator vibrator;
+
+    private FirebaseDatabase firebaseDatabase=FirebaseDatabase.getInstance();
+    private DatabaseReference voicedata=firebaseDatabase.getReference("voice");
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_shopping);
+        getSupportActionBar().setTitle("나의 쇼핑리스트");
+
+        list=new ArrayList<String>();
+
+        adapter=new ArrayAdapter<String>(this,android.R.layout.simple_list_item_single_choice,list);
+
+        listView=(ListView)findViewById(R.id.shopping_listView);
+
+        addButton=(Button)findViewById(R.id.add_button);
+        deleteButton=(Button)findViewById(R.id.delete_button);
+        editText=(AutoCompleteTextView) findViewById(R.id.autoText);
+        navigationButton=(Button)findViewById(R.id.start_button);
+        vibrator=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+
+        adWord=new ArrayList<String>();
+        Setting_Word();
+        editText.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_dropdown_item_1line,adWord));
+
+       // adapter=new ArrayAdapter<String>(this,android.R.layout.simple_dropdown_item_1line,list);
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+        listView.setAdapter(adapter);
+
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int count;
+                count=adapter.getCount();
+                st=editText.getText().toString();
+                if(st.length()!=0) {
+                    list.add(st);
+                    adapter.notifyDataSetChanged();
+                    editText.setText("");
+                }
+            }
+        });
+
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pos;
+                pos=listView.getCheckedItemPosition();
+                if(pos!=ListView.INVALID_POSITION){
+                    list.remove(pos);
+                    listView.clearChoices();
+                    adapter.notifyDataSetChanged();
+
+                    TastyToast.makeText(getApplication(),"삭제하였습니다.",TastyToast.LENGTH_SHORT,TastyToast.SUCCESS);
+                }
+            }
+        });
+
+
+        /*리스트를 선택 했을 때 삭제하기
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                int count,checked;
+                count=adapter.getCount();
+
+                if(count>0){
+                    checked=listView.getCheckedItemPosition();
+
+                    if(checked>-1 && checked<count){
+                        list.remove(checked);
+                        listView.clearChoices();
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        }); */
+
+        //길 안내 버튼 기능
+        navigationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int pos;
+                pos=listView.getCheckedItemPosition();
+                vibrator.vibrate(40);
+                if(pos!=ListView.INVALID_POSITION){
+                    String text=listView.getItemAtPosition(pos).toString();
+                    voicedata.child("voice").setValue(text);
+
+                    Intent intent=new Intent(getApplicationContext(),MapActivity.class);
+                    startActivity(intent);
+                }else{
+                    TastyToast.makeText(getApplication(),"위치를 찾을 상품을 선택해 주세요.",TastyToast.LENGTH_LONG,TastyToast.CONFUSING);
+                }
+            }
+        });
+
+
+        SharedPreferences pref1=getSharedPreferences("pref1",MODE_PRIVATE);
+        for(int i=0;;++i){
+            String key=String.valueOf(i);
+            final String str=pref1.getString(key,"");
+            if(!str.equals("")){
+                adapter.add(str);
+            }else{
+                break;
+            }
+        }
+
+    }
+
+    //자동완성 기능 리스트
+    private void Setting_Word(){
+        adWord.add("시리얼");     adWord.add("돼지고기");
+        adWord.add("비스킷");     adWord.add("닭고기");
+        adWord.add("스낵");     adWord.add("쌈채소");
+        adWord.add("우유");     adWord.add("초코우유");
+        adWord.add("콘푸로스트");     adWord.add("콘푸라이트");
+        adWord.add("칠성사이다");     adWord.add("사이다");
+        adWord.add("채소");     adWord.add("새우깡");
+        adWord.add("파워에이드");     adWord.add("서울우유");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        shraddata();
+    }
+
+    private void shraddata(){
+        SharedPreferences pref1=getSharedPreferences("pref1",MODE_PRIVATE);
+        SharedPreferences.Editor editor=pref1.edit();
+        editor.clear();
+        for(int i=0; i<adapter.getCount(); ++i){
+            String key=String.valueOf(i);
+            editor.putString(key,adapter.getItem(i));
+        }
+        editor.commit();
+   }
+
+
+}

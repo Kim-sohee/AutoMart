@@ -1,0 +1,30 @@
+package org.techtown.martapp2;
+
+public class iotData {
+    private String name;
+    private String check;
+
+    public iotData(){ }
+
+    public iotData(String name, String check) {
+        this.name = name;
+        this.check = check;
+    }
+
+    public String getname() {
+        return name;
+    }
+
+    public void setname(String name) {
+        this.name = name;
+    }
+
+    public String getcheck() {
+        return check;
+    }
+
+    public void setcheck(String check) {
+        this.check = check;
+    }
+
+}

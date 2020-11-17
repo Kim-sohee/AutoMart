@@ -1,0 +1,314 @@
+package org.techtown.martapp2;
+
+import android.app.Activity;
+import android.app.Dialog;
+import android.app.ListActivity;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Vibrator;
+import android.support.annotation.NonNull;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.KIET.VOCD.UnityPlayerActivity;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.sdsmdg.tastytoast.TastyToast;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
+
+public class MainActivity extends AppCompatActivity {
+
+    FirebaseDatabase firebaseDatabase=FirebaseDatabase.getInstance();
+    DatabaseReference databaseReference=firebaseDatabase.getReference("timesale");
+    DatabaseReference doordialog=firebaseDatabase.getReference();
+    DatabaseReference detectdata=firebaseDatabase.getReference();
+    DatabaseReference servicemain=firebaseDatabase.getReference("oi");
+    DatabaseReference bacodeAR=firebaseDatabase.getReference("barcode");
+
+    private DatabaseReference doorData=firebaseDatabase.getReference("door");
+
+
+    Vibrator vibrator;
+    ViewPager viewPager;
+
+
+    Integer[] imageIDs={
+            R.drawable.slide5,R.drawable.slide6,R.drawable.slide2,R.drawable.slide3,
+            R.drawable.slide4,R.drawable.slide0,R.drawable.slide1
+    };
+
+    String[] imagesName={"image1","image2","image3","image4","image5","image6","image7"};
+
+    int currentPage=0;
+    Timer timer;
+    long DELAY_MS=500;
+    long PERIOD_MS=3000;
+
+    TextView scrolltext;
+
+    String mmie;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        getSupportActionBar().hide();
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        vibrator=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+
+        servicemain.child("oi").setValue("high");
+
+        mmie2();
+
+        //door- door 폴더 읽기
+        doordialog.child("door").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot message:dataSnapshot.getChildren()){
+                    String msg=message.getValue().toString();
+                    if(msg.equals("detect")){
+                        if(mmie.equals("OK")) {
+                            //장바구니 연결 및 출입문 버튼을 눌러주세요.
+                            opendialog();
+                            doordialog.child("door").child("door").setValue("load");
+                        }
+                        else if(mmie.equals("")){
+                            //장바구니 연결 및 결제를 부탁드립니다.
+                            paydialog();
+                            doordialog.child("door").child("door").setValue("load");
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        /*photoView=(PhotoView)findViewById(R.id.month_saleimage);
+        storageReference=firebaseStorage.getInstance().getReference();
+        ref=storageReference.child("image/test_image1.png");
+        ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+            @Override
+            public void onSuccess(Uri uri) {
+                String url=uri.toString();
+                PhotoViewAttacher photoViewAttacher=new PhotoViewAttacher(photoView);
+                photoViewAttacher.update();
+
+                Picasso.with(getApplication()).load(url).into(photoView);
+            }
+        });*/
+
+        //time Sale 문구 받아오기
+        scrolltext=(TextView)findViewById(R.id.scrollsale);
+        scrolltext.setSelected(true);   //텍스트 한줄로 표시
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot messageData:dataSnapshot.getChildren()){
+                    String text=messageData.getValue().toString();
+                    scrolltext.setText(text);
+
+                    Handler handler2=new Handler();
+                    handler2.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                           databaseReference.child("timesale").setValue("");
+                        }
+                    },60000);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+        /*viewPager=(ViewPager)findViewById(R.id.viewPager);
+        ViewPagerAdapter viewPagerAdapter=new ViewPagerAdapter(this);
+        viewPager.setAdapter(viewPagerAdapter); */
+
+        //자동 스크롤
+        viewPager=(ViewPager) findViewById(R.id.viewPager);
+        PagerAdapter adapter=new CustomAdapter(MainActivity.this,imageIDs,imagesName);
+        viewPager.setAdapter(adapter);
+
+        final Handler handler=new Handler();
+        final Runnable Update=new Runnable() {
+            @Override
+            public void run() {
+                if(currentPage==7){
+                    currentPage=0;
+                }
+                viewPager.setCurrentItem(currentPage++,true);
+            }
+        };
+        timer=new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                handler.post(Update);
+            }
+        },DELAY_MS,PERIOD_MS);
+
+
+        //지도 버튼
+        Button nav_map=(Button)findViewById(R.id.nav_map);
+        nav_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrator.vibrate(50);
+                Intent intent=new Intent(getApplication(),MapActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        //구매할 목록 리스트 버튼
+        Button nav_list=(Button)findViewById(R.id.nav_list);
+        nav_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrator.vibrate(50);
+                Intent intent=new Intent(getApplication(),ListviewActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        //세일 정보 버튼
+        Button nav_sale=(Button)findViewById(R.id.nav_sale);
+        nav_sale.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrator.vibrate(50);
+                Intent intent=new Intent(getApplication(),SaleActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        //장바구니 버튼
+        Button nav_shopping=(Button)findViewById(R.id.nav_shoppinglist);
+        nav_shopping.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrator.vibrate(50);
+                //Intent intent=new Intent(getApplication(),ShoppinglistActivity.class);
+                Intent intent=new Intent(getApplication(),CouponActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        //AR 행사
+        Button nav_arMap=(Button)findViewById(R.id.nav_arMap);
+        nav_arMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrator.vibrate(50);
+                bacodeAR.child("barcode").setValue("s");       //바코드 팔 들기
+                Intent i=new Intent(getApplication(), UnityPlayerActivity.class);
+                startActivity(i);
+            }
+        });
+
+        //사용설명서
+        Button nav_help=(Button)findViewById(R.id.nav_how);
+        nav_help.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vibrator.vibrate(50);
+                Intent intent=new Intent(getApplication(),MenualActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void mmie2(){
+        detectdata.child("mmie").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for(DataSnapshot message:dataSnapshot.getChildren()){
+                    mmie=message.getValue().toString();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void opendialog(){      //출입문 열기(계산 완료)
+        if(!MainActivity.this.isFinishing()) {
+            final Dialog dialog=new Dialog(MainActivity.this);
+            dialog.requestWindowFeature(getWindow().FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.exitdialog2);
+
+            Button exitButton1=dialog.findViewById(R.id.exitdialog_yes);
+            exitButton1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    detectdata.child("mmie").child("mmie").setValue("");
+                    doorData.child("door").setValue("Open");
+                    TastyToast.makeText(getApplication(),"출입문이 열립니다.",TastyToast.LENGTH_LONG,TastyToast.INFO);
+                    dialog.dismiss();
+                }
+            });
+            dialog.show();
+        }
+    }
+
+    private void paydialog(){       //계산 요청(출입문 통과 전)
+        if(!MainActivity.this.isFinishing()) {
+            final Dialog dialog=new Dialog(MainActivity.this);
+            dialog.requestWindowFeature(getWindow().FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.exitdialog1);
+
+            Button exitButton1=dialog.findViewById(R.id.exitdialog1_button);
+            exitButton1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), ListviewActivity.class);
+                    startActivity(intent);
+                    dialog.dismiss();
+                }
+            });
+            dialog.show();
+        }
+    }
+
+    //app die
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        //Toast.makeText(this, "MainActivity Destroy", Toast.LENGTH_SHORT).show();
+        servicemain.child("oi").setValue("low");
+    }
+}
