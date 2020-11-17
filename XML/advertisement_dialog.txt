@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="250dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#40FFCC99">
+
+    <uk.co.senab.photoview.PhotoView
+        android:id="@+id/advertise_image"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="15dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center"
+        android:text="이런 상품 어떠세요?" />
+
+    <!--
+    <TextView
+        android:id="@+id/adverise_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        android:text="" />
+
+        -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp">
+
+        <Button
+            android:id="@+id/good_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginRight="15dp"
+            android:text="YES"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            android:background="@drawable/ripple_effect2" />
+
+        <Button
+            android:id="@+id/bad_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="NO"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            android:background="@drawable/ripple_effect" />
+
+    </LinearLayout>
+
+
+
+</LinearLayout>
